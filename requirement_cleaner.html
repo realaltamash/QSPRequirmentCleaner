@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Requirement Cleaner</title>
+<style>
+  :root{
+    --paper:#f6f3ec;
+    --ink:#1f2b28;
+    --ink-soft:#5c6a63;
+    --line:#c9c1ac;
+    --stamp:#2f6f5e;
+    --stamp-soft:#e4efe9;
+    --warn:#b0542b;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    background-image:
+      linear-gradient(var(--paper),var(--paper)),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 26px);
+  }
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:14px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  header h1{
+    font-family:var(--mono);
+    font-size:22px;
+    letter-spacing:0.5px;
+    margin:0;
+    text-transform:uppercase;
+  }
+  header .tag{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-soft);
+    border:1px dashed var(--line);
+    padding:4px 10px;
+    border-radius:3px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  @media (max-width:860px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:#fffdf8;
+    border:1px solid var(--line);
+    border-radius:6px;
+    box-shadow:0 1px 0 var(--line);
+    display:flex;
+    flex-direction:column;
+    min-height:520px;
+  }
+  .panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .panel-head .label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  textarea{
+    flex:1;
+    border:none;
+    background:transparent;
+    resize:none;
+    padding:16px;
+    font-family:var(--mono);
+    font-size:13.5px;
+    line-height:1.55;
+    color:var(--ink);
+    outline:none;
+  }
+  textarea::placeholder{color:#9a9384;}
+
+  .btn{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    background:var(--stamp);
+    color:#fff;
+    border:none;
+    padding:8px 14px;
+    border-radius:4px;
+    cursor:pointer;
+    transition:transform .08s ease, background .15s ease;
+  }
+  .btn:hover{background:#255a4c;}
+  .btn:active{transform:scale(0.97);}
+  .btn.ghost{
+    background:transparent;
+    color:var(--stamp);
+    border:1px solid var(--stamp);
+  }
+  .btn.ghost:hover{background:var(--stamp-soft);}
+  .btn.small{padding:5px 10px;font-size:11px;}
+
+  .action-row{
+    display:flex;
+    gap:10px;
+    padding:12px 14px;
+    border-top:1px solid var(--line);
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .hint{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    font-family:var(--mono);
+  }
+  .stamp-mark{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--warn);
+  }
+
+  #output{
+    white-space:pre-wrap;
+  }
+
+  .fields-note{
+    padding:12px 14px 0;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+  .fields-note b{color:var(--ink);}
+
+  footer{
+    margin-top:26px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-soft);
+    border-top:1px dashed var(--line);
+    padding-top:14px;
+  }
+
+  ::selection{background:var(--stamp-soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Requirement Cleaner</h1>
+    <div class="tag">paste messy → get the standard slip</div>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="label">Raw / Messy Input</span>
+        <button class="btn ghost small" onclick="loadSample()">Load sample</button>
+      </div>
+      <textarea id="input" placeholder="Paste the unclean requirement text here..."></textarea>
+      <div class="action-row">
+        <button class="btn" onclick="clean()">Clean it →</button>
+        <button class="btn ghost small" onclick="document.getElementById('input').value='';document.getElementById('output').textContent='';">Clear</button>
+        <span class="hint" id="detectHint"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="label">Cleaned Output</span>
+        <button class="btn ghost small" onclick="copyOutput()">Copy</button>
+      </div>
+      <textarea id="output" placeholder="Cleaned requirement will appear here, editable before you copy it."></textarea>
+      <div class="action-row">
+        <span class="stamp-mark" id="statusMark"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="leftoverPanel" style="min-height:auto;margin-top:20px;display:none;">
+    <div class="panel-head">
+      <span class="label">Not included in cleaned output</span>
+    </div>
+    <div id="leftoverList" style="padding:14px;font-family:var(--mono);font-size:12.5px;line-height:1.7;"></div>
+  </div>
+
+  <div class="fields-note">
+    Recognises: <b>Company / Branch code, Business unit, Job title, Designation, Job & interview location,
+    Skills required, Other skills, Gender, Mode/rounds of interview, 10th/12th %, YOP, Qualification type,
+    Degree + stream + %, Masters + stream + %, Salary, Bond.</b>
+    Fields not found in your paste are simply left out — edit the right-hand box freely before copying.
+    Degree/stream names are auto-shortened (e.g. Bachelor of Engineering → BE) when recognised; anything
+    unrecognised is kept in full.
+  </div>
+
+  <footer>Everything runs in your browser — nothing you paste here is sent anywhere.</footer>
+</div>
+
+<script>
+const LABELS = [
+  ['companyRaw', /company\s*name\s*\/\s*account\s*name/i],
+  ['companyRaw', /company\s*name/i],
+  ['companyRaw', /account\s*name/i],
+  ['code', /branch\s*deal/i],
+  ['businessUnit', /business\s*unit/i],
+  ['jobTitle', /job\s*title(\s*\([^)]*\))?\s*/i],
+  ['designation', /designation(\s*\([^)]*\))?\s*/i],
+  ['interviewLocation', /interview\s*location/i],
+  ['jobLocation', /job\s*location/i],
+  ['skills', /skills\s*required/i],
+  ['otherSkills', /other\s*skills/i],
+  ['genderSpec', /gender\s*specification/i],
+  ['genderSpec', /gender/i],
+  ['mode', /mode\s*of\s*interview/i],
+  ['rounds', /interview\s*rounds/i],
+  ['tenth', /10\s*th\s*percent/i],
+  ['twelfth', /12\s*th\s*percent/i],
+  ['qualType', /qualification\s*type/i],
+  ['degreeStream', /degree\s*stream/i],
+  ['degreePercent', /degree\s*percent/i],
+  ['degree', /degree/i],
+  ['mastersStream', /masters\s*stream/i],
+  ['mastersPercent', /masters\s*percent/i],
+  ['masters', /masters/i],
+  ['salary', /salary\s*package/i],
+  ['salary', /salary/i],
+  ['bond', /bond/i],
+  ['yop', /yop/i],
+  ['stream', /stream/i],
+  ['overallPercent', /(?<![a-z])%(?=\s*:)/i],
+  ['date', /date/i],
+];
+
+function parse(text) {
+  const { text: strippedText } = separateLeftover(text);
+  let t = strippedText.replace(/\r/g, '').replace(/\*/g, '');
+  let flat = t.replace(/[\t\n]+/g, ' ').replace(/ {2,}/g, ' ');
+
+  let matches = [];
+  for (const [key, re] of LABELS) {
+    const gre = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+    let m;
+    while ((m = gre.exec(flat)) !== null) {
+      let end = m.index + m[0].length;
+      let rest = flat.slice(end);
+      let colonMatch = rest.match(/^\s*:?-?\s*/);
+      let valueStart = end + (colonMatch ? colonMatch[0].length : 0);
+      matches.push({ key, start: m.index, labelEnd: end, valueStart });
+      if (m.index === gre.lastIndex) gre.lastIndex++;
+    }
+  }
+  matches.sort((a, b) => a.start - b.start);
+
+  let filtered = [];
+  for (const m of matches) {
+    let dupe = filtered.find(f => f.start === m.start);
+    if (dupe) {
+      if ((m.labelEnd - m.start) > (dupe.labelEnd - dupe.start)) {
+        filtered = filtered.filter(f => f !== dupe);
+        filtered.push(m);
+      }
+      continue;
+    }
+    filtered.push(m);
+  }
+  filtered.sort((a, b) => a.start - b.start);
+
+  let cleaned = [];
+  for (const m of filtered) {
+    const prev = cleaned[cleaned.length - 1];
+    if (prev && m.start < prev.valueStart) continue;
+    cleaned.push(m);
+  }
+
+  const result = {};
+  for (let i = 0; i < cleaned.length; i++) {
+    const cur = cleaned[i];
+    const next = cleaned[i + 1];
+    let valueEnd = next ? next.start : flat.length;
+    let value = flat.slice(cur.valueStart, valueEnd).trim();
+    value = value.replace(/^[-:\s]+/, '').replace(/[-\s]+$/, '');
+    if (!value) continue;
+    if (!result[cur.key]) result[cur.key] = value;
+    else result[cur.key] += ' ; ' + value;
+  }
+  return result;
+}
+
+// ---- Degree / Stream short-form dictionary ----
+// Longest phrases first so "computer science and engineering" beats "computer science"
+const DEGREE_ABBR = [
+  ['bachelor of engineering', 'BE'],
+  ['bachelor of technology', 'BTECH'],
+  ['bachelor of computer applications', 'BCA'],
+  ['bachelor of computer science', 'BCS'],
+  ['bachelor of business administration', 'BBA'],
+  ['bachelor of commerce', 'BCOM'],
+  ['bachelor of science', 'BSC'],
+  ['bachelor of arts', 'BA'],
+  ['master of engineering', 'ME'],
+  ['master of technology', 'MTECH'],
+  ['master of computer applications', 'MCA'],
+  ['master of business administration', 'MBA'],
+  ['master of commerce', 'MCOM'],
+  ['master of science', 'MSC'],
+  ['master of arts', 'MA'],
+];
+
+const STREAM_ABBR = [
+  ['artificial intelligence and machine learning engineering', 'AIML'],
+  ['artificial intelligence and machine learning', 'AIML'],
+  ['computer science and engineering', 'CSE'],
+  ['information science and engineering', 'ISE'],
+  ['electronics and communication engineering', 'ECE'],
+  ['electronics and telecommunications engineering', 'ETE'],
+  ['electronics and telecommunication engineering', 'ETE'],
+  ['electrical and electronics engineering', 'EEE'],
+  ['electrical and electronic engineering', 'EEE'],
+  ['mechanical engineering', 'MECH'],
+  ['civil engineering', 'CIVIL'],
+  ['chemical engineering', 'CHEM'],
+  ['aeronautical engineering', 'AERO'],
+  ['electrical engineering', 'EE'],
+  ['information science', 'ISE'],
+  ['information technology', 'IT'],
+  ['computer science', 'CSE'],
+  ['biotechnology', 'BT'],
+  ['artificial intelligence', 'AI'],
+];
+
+function buildAbbrRegexList(dict) {
+  // sort longest phrase first so longer matches win over shorter substrings
+  return [...dict].sort((a, b) => b[0].length - a[0].length)
+    .map(([phrase, code]) => [new RegExp('\\b' + phrase.replace(/\s+/g, '\\s+') + '\\b', 'gi'), code]);
+}
+const DEGREE_ABBR_RE = buildAbbrRegexList(DEGREE_ABBR);
+const STREAM_ABBR_RE = buildAbbrRegexList(STREAM_ABBR);
+
+function abbreviate(text, reList) {
+  if (!text) return text;
+  let out = text;
+  for (const [re, code] of reList) out = out.replace(re, code);
+  return out;
+}
+
+// ---- Leftover / not-recognised detection ----
+const BOILERPLATE_LINE = [
+  /^\*?\s*requirement\s*\*?$/i,
+  /^those who are interested/i,
+  /^name\s*:?\s*$/i,
+  /^contact\s*no\s*:?\s*$/i,
+  /^degree\s*:?\s*$/i,
+  /^stream\s*:?\s*$/i,
+  /^yop\s*:?\s*$/i,
+  /^[-=*_\s]{2,}$/,
+];
+
+function separateLeftover(rawText) {
+  const lines = rawText.replace(/\r/g, '').split('\n');
+  const keptLines = [];
+  const leftovers = [];
+  for (let line of lines) {
+    let trimmed = line.replace(/\*/g, '').trim();
+    if (!trimmed) { keptLines.push(line); continue; }
+    if (BOILERPLATE_LINE.some(re => re.test(trimmed))) { keptLines.push(line); continue; }
+    let hasLabel = LABELS.some(([, re]) => {
+      const test = new RegExp(re.source, re.flags.replace('g', ''));
+      return test.test(trimmed);
+    });
+    if (hasLabel) { keptLines.push(line); continue; }
+    // no recognised label on this line -> treat as leftover, drop it from parsing text
+    leftovers.push(line.trim());
+  }
+  return { text: keptLines.join('\n'), leftovers };
+}
+
+function findLeftover(rawText) {
+  return separateLeftover(rawText).leftovers;
+}
+
+function splitCompanyCode(r) {
+  let m = r.companyRaw ? r.companyRaw.match(/^([A-Za-z0-9]+)\s*\(([^)]+)\)$/) : null;
+  if (m) return { code: r.code || m[1], company: m[2].trim() };
+  return { code: r.code || '', company: r.companyRaw || '' };
+}
+
+function deriveDate(code, explicitDate) {
+  if (explicitDate) return explicitDate.replace(/^-+|-+$/g, '').trim();
+  if (code) {
+    const m = code.match(/^R(\d{2})(\d{2})(\d{2})/i);
+    if (m) return `${m[1]}-${m[2]}-20${m[3]}`;
+  }
+  return '';
+}
+
+function titleCaseWords(s) {
+  if (!s) return s;
+  return s.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function upper(s){ return s ? s.toUpperCase() : s; }
+
+function format(r) {
+  const { code, company } = splitCompanyCode(r);
+  const date = deriveDate(code, r.date);
+
+  const lines = [];
+  lines.push('*REQUIREMENT*');
+  if (date) lines.push(`Date :- ${date}`);
+  if (code || company) {
+    let compLine = '*Company Name :';
+    compLine += code ? ` ${code}*` : `${company ? ' ' + company : ''}*`;
+    if (code && company) compLine += `   (${company})`;
+    lines.push(compLine);
+  }
+  if (r.businessUnit) lines.push(`Business Unit : ${r.businessUnit}`);
+  if (r.jobTitle) lines.push(`Job Title : ${titleCaseWords(r.jobTitle)}`);
+  if (r.designation) lines.push(`*Designation : ${r.designation}*`);
+
+  const skillsCombined = [r.skills, r.otherSkills].filter(Boolean).join(', ');
+  if (skillsCombined) lines.push(`*Skills Required : ${skillsCombined}*`);
+
+  if (r.jobLocation) lines.push(`Job location : ${r.jobLocation}`);
+  if (r.interviewLocation) lines.push(`Interview location : ${r.interviewLocation}`);
+  if (r.mode) lines.push(`Mode of Interview : ${r.mode}`);
+  if (r.rounds) lines.push(`Interview Rounds : ${r.rounds}`);
+  if (r.salary) lines.push(`Salary package : ${r.salary}`);
+  if (r.bond) lines.push(`BOND : ${r.bond}`);
+  if (r.genderSpec) lines.push(`Gender : ${upper(r.genderSpec)}`);
+
+  if (r.degree) lines.push(`DEGREE : ${abbreviate(r.degree, DEGREE_ABBR_RE)}`);
+  if (r.degreeStream) lines.push(`Degree Stream : ${abbreviate(r.degreeStream, STREAM_ABBR_RE)}`);
+  if (r.degreePercent) lines.push(`Degree % : ${r.degreePercent}`);
+  if (r.masters) lines.push(`MASTERS : ${abbreviate(r.masters, DEGREE_ABBR_RE)}`);
+  if (r.mastersStream) lines.push(`Masters Stream : ${abbreviate(r.mastersStream, STREAM_ABBR_RE)}`);
+  if (r.mastersPercent) lines.push(`Masters % : ${r.mastersPercent}`);
+  if (r.qualType) lines.push(`Qualification Type : ${r.qualType}`);
+
+  if (r.stream && !r.degreeStream) lines.push(`Stream : ${abbreviate(upper(r.stream), STREAM_ABBR_RE)}`);
+  if (r.tenth) lines.push(`10th % : ${r.tenth}`);
+  if (r.twelfth) lines.push(`12th % : ${r.twelfth}`);
+  if (r.yop) lines.push(`YOP : ${r.yop}`);
+  if (r.overallPercent) lines.push(`% : ${r.overallPercent}`);
+
+  lines.push('');
+  lines.push('Those who are interested give your name in below format its urgent requirement.');
+  lines.push('Name:');
+  lines.push('Contact no:');
+  lines.push('Degree:');
+  lines.push('Stream:');
+  lines.push('YOP:');
+
+  return lines.join('\n');
+}
+
+function clean() {
+  const raw = document.getElementById('input').value;
+  const status = document.getElementById('statusMark');
+  const hint = document.getElementById('detectHint');
+  if (!raw.trim()) {
+    status.textContent = 'Nothing to clean yet.';
+    return;
+  }
+  const parsed = parse(raw);
+  const found = Object.keys(parsed).length;
+  document.getElementById('output').value = format(parsed);
+  status.textContent = `Detected ${found} field${found === 1 ? '' : 's'}. Review before sending.`;
+  hint.textContent = '';
+
+  const leftovers = findLeftover(raw);
+  const panel = document.getElementById('leftoverPanel');
+  const list = document.getElementById('leftoverList');
+  if (leftovers.length) {
+    panel.style.display = 'block';
+    list.innerHTML = leftovers.map(l =>
+      `<div style="border-left:3px solid #b0542b;padding:4px 10px;margin-bottom:6px;background:#fbeee7;">${l.replace(/</g,'&lt;')}</div>`
+    ).join('');
+  } else {
+    panel.style.display = 'block';
+    list.innerHTML = '<div style="color:#5c6a63;">Nothing left over — every line was recognised.</div>';
+  }
+}
+
+function copyOutput() {
+  const out = document.getElementById('output');
+  out.select();
+  document.execCommand('copy');
+  const status = document.getElementById('statusMark');
+  status.textContent = 'Copied to clipboard.';
+  setTimeout(() => { if (status.textContent === 'Copied to clipboard.') status.textContent=''; }, 2000);
+}
+
+function loadSample() {
+  document.getElementById('input').value = `Company Name / Account Name\tembitel
+Branch Deal\tR14072633703J
+Business Unit\tjspiders
+Job Title (Testing/Development/Generic) :\ttechnical
+Designation (Role/Job Title) :\tsoftware engineer
+Job Location : bangalore
+Interview Location : bangalore
+Skills Required :\tcore java
+Other Skills :\tspring boot , good communication
+Gender Specification :\tfemale , male
+Mode Of Interview : offline
+Interview Rounds : technical round , hr round , aptitude test
+10th Percent\t65%
+12th Percent\t65%
+YOP : 2026
+Qualification Type :\tDegree  Masters
+Degree :\tbachelor of engineering ; bachelor of technology
+Degree Stream :\tcomputer science , information technology
+Degree Percent : 65% - 100%
+Masters : master of engineering ; master of technology
+Masters Stream\tcomputer science , information technology
+Masters Percent : \t65% - 100%`;
+}
+</script>
+</body>
+</html>
