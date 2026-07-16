@@ -184,7 +184,9 @@
       <div class="action-row">
         <button class="btn" onclick="clean()">Clean it →</button>
         <button class="btn ghost small" onclick="document.getElementById('input').value='';document.getElementById('output').textContent='';">Clear</button>
-        <span class="hint" id="detectHint"></span>
+        <label class="hint" style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="checkbox" id="includeExtra" onchange="clean()"> include extra fields (business unit, rounds, 10th/12th%, masters...)
+        </label>
       </div>
     </div>
 
@@ -194,8 +196,9 @@
         <button class="btn ghost small" onclick="copyOutput()">Copy</button>
       </div>
       <textarea id="output" placeholder="Cleaned requirement will appear here, editable before you copy it."></textarea>
-      <div class="action-row">
+      <div class="action-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
         <span class="stamp-mark" id="statusMark"></span>
+        <span class="hint" id="detectHint"></span>
       </div>
     </div>
   </div>
@@ -221,52 +224,66 @@
 
 <script>
 const LABELS = [
-  ['companyRaw', /company\s*name\s*\/\s*account\s*name/i],
-  ['companyRaw', /company\s*name/i],
-  ['companyRaw', /account\s*name/i],
-  ['code', /branch\s*deal/i],
-  ['businessUnit', /business\s*unit/i],
-  ['jobTitle', /job\s*title(\s*\([^)]*\))?\s*/i],
-  ['designation', /designation(\s*\([^)]*\))?\s*/i],
-  ['interviewLocation', /interview\s*location/i],
-  ['jobLocation', /job\s*location/i],
-  ['skills', /skills\s*required/i],
-  ['otherSkills', /other\s*skills/i],
-  ['genderSpec', /gender\s*specification/i],
-  ['genderSpec', /gender/i],
-  ['mode', /mode\s*of\s*interview/i],
-  ['rounds', /interview\s*rounds/i],
-  ['tenth', /10\s*th\s*percent/i],
-  ['twelfth', /12\s*th\s*percent/i],
-  ['qualType', /qualification\s*type/i],
-  ['degreeStream', /degree\s*stream/i],
-  ['degreePercent', /degree\s*percent/i],
-  ['degree', /degree/i],
-  ['mastersStream', /masters\s*stream/i],
-  ['mastersPercent', /masters\s*percent/i],
-  ['masters', /masters/i],
-  ['salary', /salary\s*package/i],
-  ['salary', /salary/i],
-  ['bond', /bond/i],
-  ['yop', /yop/i],
-  ['stream', /stream/i],
+  ['companyRaw', /\bcompany\s*name\s*\/\s*account\s*name\b/i],
+  ['companyRaw', /\bcompany\s*name\b/i],
+  ['companyRaw', /\baccount\s*name\b/i],
+  ['code', /\bbranch\s*deal\b/i],
+  ['businessUnit', /\bbusiness\s*unit\b/i],
+  ['jobTitle', /\bjob\s*title\b(\s*\([^)]*\))?\s*/i],
+  ['designation', /\bdesignation\b(\s*\([^)]*\))?\s*/i],
+  ['interviewLocation', /\binterview\s*location\b/i],
+  ['jobLocation', /\bjob\s*location\b/i],
+  ['skills', /\bskills\s*required\b/i],
+  ['otherSkills', /\bother\s*skills\b/i],
+  ['genderSpec', /\bgender\s*specification\b/i],
+  ['genderSpec', /\bgender\b/i],
+  ['mode', /\bmode\s*of\s*interview\b/i],
+  ['rounds', /\binterview\s*rounds\b/i],
+  ['tenth', /\b10\s*th\s*percent\b/i],
+  ['twelfth', /\b12\s*th\s*percent\b/i],
+  ['qualType', /\bqualification\s*type\b/i],
+  ['degreeStream', /\bdegree\s*stream\b/i],
+  ['degreePercent', /\bdegree\s*percent\b/i],
+  ['degree', /\bdegree\b/i],
+  ['mastersStream', /\bmasters\s*stream\b/i],
+  ['mastersPercent', /\bmasters\s*percent\b/i],
+  ['masters', /\bmasters\b/i],
+  ['salary', /\bsalary\s*package\b/i],
+  ['salary', /\bsalary\b/i],
+  ['bond', /\bbond\b/i],
+  ['yop', /\byop\b/i],
+  ['stream', /\bstream\b/i],
   ['overallPercent', /(?<![a-z])%(?=\s*:)/i],
-  ['date', /date/i],
+  ['date', /\bdate\b/i],
 ];
 
 function parse(text) {
   const { text: strippedText } = separateLeftover(text);
   let t = strippedText.replace(/\r/g, '').replace(/\*/g, '');
-  let flat = t.replace(/[\t\n]+/g, ' ').replace(/ {2,}/g, ' ');
+  // Use a sentinel (\u0001) to mark REAL field boundaries: tabs, newlines, or big gaps
+  // (2+ spaces) used to separate concatenated fields on one line. A label word that
+  // merely appears mid-sentence (single space before it) will NOT be preceded by a
+  // sentinel, so it can no longer be mistaken for the start of a new field.
+  let flat = t
+    .replace(/\t+/g, '\u0001')
+    .replace(/\n+/g, '\u0001')
+    .replace(/ {2,}/g, '\u0001')
+    .replace(/[\u0001\s]*\u0001[\u0001\s]*/g, '\u0001')
+    .replace(/^\u0001+|\u0001+$/g, '');
 
   let matches = [];
   for (const [key, re] of LABELS) {
     const gre = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
     let m;
     while ((m = gre.exec(flat)) !== null) {
+      const precededByBoundary = m.index === 0 || flat[m.index - 1] === '\u0001';
+      if (!precededByBoundary) {
+        if (m.index === gre.lastIndex) gre.lastIndex++;
+        continue;
+      }
       let end = m.index + m[0].length;
       let rest = flat.slice(end);
-      let colonMatch = rest.match(/^\s*:?-?\s*/);
+      let colonMatch = rest.match(/^[\u0001\s]*:?-?[\u0001\s]*/);
       let valueStart = end + (colonMatch ? colonMatch[0].length : 0);
       matches.push({ key, start: m.index, labelEnd: end, valueStart });
       if (m.index === gre.lastIndex) gre.lastIndex++;
@@ -296,17 +313,50 @@ function parse(text) {
   }
 
   const result = {};
+  const rejected = []; // text trimmed off by validators - shown as "not included"
   for (let i = 0; i < cleaned.length; i++) {
     const cur = cleaned[i];
     const next = cleaned[i + 1];
     let valueEnd = next ? next.start : flat.length;
-    let value = flat.slice(cur.valueStart, valueEnd).trim();
-    value = value.replace(/^[-:\s]+/, '').replace(/[-\s]+$/, '');
+    let value = flat.slice(cur.valueStart, valueEnd).replace(/\u0001/g, ' ').trim();
+    value = value.replace(/^[-:\s]+/, '').replace(/[-\s]+$/, '').replace(/\s{2,}/g, ' ');
     if (!value) continue;
-    if (!result[cur.key]) result[cur.key] = value;
-    else result[cur.key] += ' ; ' + value;
+
+    const validated = validateField(cur.key, value);
+    if (validated.rejected) rejected.push(validated.rejected);
+    if (!validated.value) continue;
+
+    if (!result[cur.key]) result[cur.key] = validated.value;
+    else result[cur.key] += ' ; ' + validated.value;
   }
+  result.__rejected = rejected;
   return result;
+}
+
+const DATE_PATTERN = /\d{1,2}\s*[-\/.]\s*(?:\d{1,2}|[A-Za-z]{3,9})\s*[-\/.]\s*\d{2,4}/;
+const GENDER_TOKEN = /\b(male|female|any)\b/gi;
+
+function validateField(key, value) {
+  if (key === 'date') {
+    const m = value.match(DATE_PATTERN);
+    if (m) {
+      const rest = (value.slice(0, m.index) + value.slice(m.index + m[0].length)).trim().replace(/^[;,\s]+|[;,\s]+$/g, '');
+      return { value: m[0].trim(), rejected: rest ? `(trimmed from Date) ${rest}` : null };
+    }
+    return { value, rejected: null }; // no clean date pattern found - keep as-is, better than nothing
+  }
+  if (key === 'genderSpec') {
+    const tokens = value.match(GENDER_TOKEN);
+    if (tokens) {
+      const unique = [...new Set(tokens.map(t => t.toUpperCase()))];
+      const matchedSpan = tokens.join('|');
+      // figure out what's left after removing the matched gender words
+      const rest = value.replace(GENDER_TOKEN, '').replace(/[\/,]/g, ' ').replace(/\s+/g, ' ').trim();
+      return { value: unique.join(' / '), rejected: rest ? `(trimmed from Gender) ${rest}` : null };
+    }
+    return { value, rejected: null };
+  }
+  return { value, rejected: null };
 }
 
 // ---- Degree / Stream short-form dictionary ----
@@ -315,6 +365,7 @@ const DEGREE_ABBR = [
   ['bachelor of engineering', 'BE'],
   ['bachelor of technology', 'BTECH'],
   ['bachelor of computer applications', 'BCA'],
+  ['bachelor of computer application', 'BCA'],
   ['bachelor of computer science', 'BCS'],
   ['bachelor of business administration', 'BBA'],
   ['bachelor of commerce', 'BCOM'],
@@ -378,6 +429,26 @@ const BOILERPLATE_LINE = [
   /^[-=*_\s]{2,}$/,
 ];
 
+function lineHasBoundedLabel(line) {
+  let l = line.replace(/\*/g, '');
+  let flatLine = l
+    .replace(/\t+/g, '\u0001')
+    .replace(/ {2,}/g, '\u0001')
+    .replace(/[\u0001\s]*\u0001[\u0001\s]*/g, '\u0001')
+    .replace(/^[\u0001\s]+/, '')
+    .replace(/\u0001+$/, '');
+  for (const [, re] of LABELS) {
+    const gre = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+    let m;
+    while ((m = gre.exec(flatLine)) !== null) {
+      const boundary = m.index === 0 || flatLine[m.index - 1] === '\u0001';
+      if (boundary) return true;
+      if (m.index === gre.lastIndex) gre.lastIndex++;
+    }
+  }
+  return false;
+}
+
 function separateLeftover(rawText) {
   const lines = rawText.replace(/\r/g, '').split('\n');
   const keptLines = [];
@@ -386,12 +457,8 @@ function separateLeftover(rawText) {
     let trimmed = line.replace(/\*/g, '').trim();
     if (!trimmed) { keptLines.push(line); continue; }
     if (BOILERPLATE_LINE.some(re => re.test(trimmed))) { keptLines.push(line); continue; }
-    let hasLabel = LABELS.some(([, re]) => {
-      const test = new RegExp(re.source, re.flags.replace('g', ''));
-      return test.test(trimmed);
-    });
-    if (hasLabel) { keptLines.push(line); continue; }
-    // no recognised label on this line -> treat as leftover, drop it from parsing text
+    if (lineHasBoundedLabel(trimmed)) { keptLines.push(line); continue; }
+    // no recognised label at a real boundary on this line -> treat as leftover, drop it from parsing text
     leftovers.push(line.trim());
   }
   return { text: keptLines.join('\n'), leftovers };
@@ -423,74 +490,119 @@ function titleCaseWords(s) {
 
 function upper(s){ return s ? s.toUpperCase() : s; }
 
-function format(r) {
+const EXTRA_FIELD_LABELS = {
+  businessUnit: 'Business Unit',
+  interviewLocation: 'Interview Location',
+  mode: 'Mode of Interview',
+  rounds: 'Interview Rounds',
+  tenth: '10th %',
+  twelfth: '12th %',
+  qualType: 'Qualification Type',
+  degreePercent: 'Degree %',
+  masters: 'Masters',
+  mastersStream: 'Masters Stream',
+  mastersPercent: 'Masters %',
+};
+
+const MANDATORY_LABELS = {
+  date: 'Date', company: 'Company Name', jobTitle: 'Job Title', designation: 'Designation',
+  skills: 'Skills Required', otherSkills: 'Other Skills', jobLocation: 'Job location',
+  salary: 'Salary package', bond: 'BOND', genderSpec: 'Gender', degree: 'DEGREE',
+  degreeStream: 'Degree Stream', yop: 'YOP',
+};
+
+function format(r, includeExtra) {
   const { code, company } = splitCompanyCode(r);
   const date = deriveDate(code, r.date);
+  const missing = [];
 
   const lines = [];
-  lines.push('*REQUIREMENT*');
-  if (date) lines.push(`Date :- ${date}`);
+  lines.push('REQUIREMENT');
+
+  if (date) lines.push(`Date :- ${date}`); else missing.push('Date');
+
   if (code || company) {
-    let compLine = '*Company Name :';
-    compLine += code ? ` ${code}*` : `${company ? ' ' + company : ''}*`;
+    let compLine = 'Company Name :';
+    compLine += code ? ` ${code}` : `${company ? ' ' + company : ''}`;
     if (code && company) compLine += `   (${company})`;
     lines.push(compLine);
+  } else missing.push('Company Name');
+
+  if (r.jobTitle) lines.push(`Job Title : ${titleCaseWords(r.jobTitle)}`); else missing.push('Job Title');
+  if (r.designation) lines.push(`Designation : ${r.designation}`); else missing.push('Designation');
+  if (r.skills) lines.push(`Skills Required : ${r.skills}`); else missing.push('Skills Required');
+
+  lines.push(`Other Skills : ${r.otherSkills ? r.otherSkills : 'NA'}`);
+
+  if (r.jobLocation) lines.push(`Job location : ${r.jobLocation}`); else missing.push('Job location');
+  if (r.salary) lines.push(`Salary package : ${r.salary}`); else missing.push('Salary package');
+  if (r.bond) lines.push(`BOND : ${r.bond}`); else missing.push('BOND');
+  if (r.genderSpec) lines.push(`Gender: ${r.genderSpec}`); else missing.push('Gender');
+
+  const degreeOut = r.degree ? abbreviate(r.degree, DEGREE_ABBR_RE) : '';
+  if (degreeOut) lines.push(`DEGREE: ${degreeOut}`); else missing.push('DEGREE');
+
+  const streamOut = r.degreeStream ? abbreviate(r.degreeStream, STREAM_ABBR_RE)
+    : (r.stream ? abbreviate(upper(r.stream), STREAM_ABBR_RE) : '');
+  if (streamOut) lines.push(`Degree Stream: ${streamOut}`); else missing.push('Degree Stream');
+
+  if (r.yop) lines.push(`YOP : ${r.yop}`); else missing.push('YOP');
+
+  if (r.overallPercent) lines.push(`%: ${r.overallPercent}`);
+
+  if (includeExtra) {
+    if (r.businessUnit) lines.push(`Business Unit : ${r.businessUnit}`);
+    if (r.interviewLocation) lines.push(`Interview location : ${r.interviewLocation}`);
+    if (r.mode) lines.push(`Mode of Interview : ${r.mode}`);
+    if (r.rounds) lines.push(`Interview Rounds : ${r.rounds}`);
+    if (r.tenth) lines.push(`10th % : ${r.tenth}`);
+    if (r.twelfth) lines.push(`12th % : ${r.twelfth}`);
+    if (r.qualType) lines.push(`Qualification Type : ${r.qualType}`);
+    if (r.degreePercent) lines.push(`Degree % : ${r.degreePercent}`);
+    if (r.masters) lines.push(`MASTERS : ${abbreviate(r.masters, DEGREE_ABBR_RE)}`);
+    if (r.mastersStream) lines.push(`Masters Stream : ${abbreviate(r.mastersStream, STREAM_ABBR_RE)}`);
+    if (r.mastersPercent) lines.push(`Masters % : ${r.mastersPercent}`);
   }
-  if (r.businessUnit) lines.push(`Business Unit : ${r.businessUnit}`);
-  if (r.jobTitle) lines.push(`Job Title : ${titleCaseWords(r.jobTitle)}`);
-  if (r.designation) lines.push(`*Designation : ${r.designation}*`);
-
-  const skillsCombined = [r.skills, r.otherSkills].filter(Boolean).join(', ');
-  if (skillsCombined) lines.push(`*Skills Required : ${skillsCombined}*`);
-
-  if (r.jobLocation) lines.push(`Job location : ${r.jobLocation}`);
-  if (r.interviewLocation) lines.push(`Interview location : ${r.interviewLocation}`);
-  if (r.mode) lines.push(`Mode of Interview : ${r.mode}`);
-  if (r.rounds) lines.push(`Interview Rounds : ${r.rounds}`);
-  if (r.salary) lines.push(`Salary package : ${r.salary}`);
-  if (r.bond) lines.push(`BOND : ${r.bond}`);
-  if (r.genderSpec) lines.push(`Gender : ${upper(r.genderSpec)}`);
-
-  if (r.degree) lines.push(`DEGREE : ${abbreviate(r.degree, DEGREE_ABBR_RE)}`);
-  if (r.degreeStream) lines.push(`Degree Stream : ${abbreviate(r.degreeStream, STREAM_ABBR_RE)}`);
-  if (r.degreePercent) lines.push(`Degree % : ${r.degreePercent}`);
-  if (r.masters) lines.push(`MASTERS : ${abbreviate(r.masters, DEGREE_ABBR_RE)}`);
-  if (r.mastersStream) lines.push(`Masters Stream : ${abbreviate(r.mastersStream, STREAM_ABBR_RE)}`);
-  if (r.mastersPercent) lines.push(`Masters % : ${r.mastersPercent}`);
-  if (r.qualType) lines.push(`Qualification Type : ${r.qualType}`);
-
-  if (r.stream && !r.degreeStream) lines.push(`Stream : ${abbreviate(upper(r.stream), STREAM_ABBR_RE)}`);
-  if (r.tenth) lines.push(`10th % : ${r.tenth}`);
-  if (r.twelfth) lines.push(`12th % : ${r.twelfth}`);
-  if (r.yop) lines.push(`YOP : ${r.yop}`);
-  if (r.overallPercent) lines.push(`% : ${r.overallPercent}`);
 
   lines.push('');
   lines.push('Those who are interested give your name in below format its urgent requirement.');
-  lines.push('Name:');
-  lines.push('Contact no:');
-  lines.push('Degree:');
-  lines.push('Stream:');
+  lines.push('NAME:');
+  lines.push('CONTACT NO:');
+  lines.push('DEGREE:');
+  lines.push('STREAM:');
   lines.push('YOP:');
 
-  return lines.join('\n');
+  return { text: lines.join('\n'), missing };
+}
+
+function extraFieldsPresent(r) {
+  return Object.keys(EXTRA_FIELD_LABELS).filter(k => r[k]).map(k => EXTRA_FIELD_LABELS[k]);
 }
 
 function clean() {
   const raw = document.getElementById('input').value;
   const status = document.getElementById('statusMark');
   const hint = document.getElementById('detectHint');
+  const includeExtra = document.getElementById('includeExtra').checked;
   if (!raw.trim()) {
     status.textContent = 'Nothing to clean yet.';
     return;
   }
   const parsed = parse(raw);
-  const found = Object.keys(parsed).length;
-  document.getElementById('output').value = format(parsed);
+  const rejectedByValidator = parsed.__rejected || [];
+  const found = Object.keys(parsed).filter(k => k !== '__rejected').length;
+  const { text: outText, missing } = format(parsed, includeExtra);
+  document.getElementById('output').value = outText;
   status.textContent = `Detected ${found} field${found === 1 ? '' : 's'}. Review before sending.`;
-  hint.textContent = '';
 
-  const leftovers = findLeftover(raw);
+  const hiddenExtras = includeExtra ? [] : extraFieldsPresent(parsed);
+  let hintParts = [];
+  if (missing.length) hintParts.push(`⚠ Missing: ${missing.join(', ')}`);
+  if (hiddenExtras.length) hintParts.push(`Also found (hidden): ${hiddenExtras.join(', ')}`);
+  hint.textContent = hintParts.join('  |  ');
+  hint.style.color = missing.length ? '#b0542b' : '';
+
+  const leftovers = [...findLeftover(raw), ...rejectedByValidator];
   const panel = document.getElementById('leftoverPanel');
   const list = document.getElementById('leftoverList');
   if (leftovers.length) {
