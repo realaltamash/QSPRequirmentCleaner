@@ -2,653 +2,230 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Requirement Cleaner</title>
-<style>
-  :root{
-    --paper:#f6f3ec;
-    --ink:#1f2b28;
-    --ink-soft:#5c6a63;
-    --line:#c9c1ac;
-    --stamp:#2f6f5e;
-    --stamp-soft:#e4efe9;
-    --warn:#b0542b;
-    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
-    --sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--paper);
-    color:var(--ink);
-    font-family:var(--sans);
-    background-image:
-      linear-gradient(var(--paper),var(--paper)),
-      repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 26px);
-  }
-  .wrap{
-    max-width:1180px;
-    margin:0 auto;
-    padding:28px 20px 60px;
-  }
-  header{
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    border-bottom:2px solid var(--ink);
-    padding-bottom:14px;
-    margin-bottom:22px;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-  header h1{
-    font-family:var(--mono);
-    font-size:22px;
-    letter-spacing:0.5px;
-    margin:0;
-    text-transform:uppercase;
-  }
-  header .tag{
-    font-family:var(--mono);
-    font-size:12px;
-    color:var(--ink-soft);
-    border:1px dashed var(--line);
-    padding:4px 10px;
-    border-radius:3px;
-  }
-  .grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px;
-    align-items:start;
-  }
-  @media (max-width:860px){ .grid{grid-template-columns:1fr;} }
-
-  .panel{
-    background:#fffdf8;
-    border:1px solid var(--line);
-    border-radius:6px;
-    box-shadow:0 1px 0 var(--line);
-    display:flex;
-    flex-direction:column;
-    min-height:520px;
-  }
-  .panel-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:10px 14px;
-    border-bottom:1px solid var(--line);
-  }
-  .panel-head .label{
-    font-family:var(--mono);
-    font-size:11px;
-    letter-spacing:1.5px;
-    text-transform:uppercase;
-    color:var(--ink-soft);
-  }
-  textarea{
-    flex:1;
-    border:none;
-    background:transparent;
-    resize:none;
-    padding:16px;
-    font-family:var(--mono);
-    font-size:13.5px;
-    line-height:1.55;
-    color:var(--ink);
-    outline:none;
-  }
-  textarea::placeholder{color:#9a9384;}
-
-  .btn{
-    font-family:var(--mono);
-    font-size:12px;
-    letter-spacing:0.5px;
-    text-transform:uppercase;
-    background:var(--stamp);
-    color:#fff;
-    border:none;
-    padding:8px 14px;
-    border-radius:4px;
-    cursor:pointer;
-    transition:transform .08s ease, background .15s ease;
-  }
-  .btn:hover{background:#255a4c;}
-  .btn:active{transform:scale(0.97);}
-  .btn.ghost{
-    background:transparent;
-    color:var(--stamp);
-    border:1px solid var(--stamp);
-  }
-  .btn.ghost:hover{background:var(--stamp-soft);}
-  .btn.small{padding:5px 10px;font-size:11px;}
-
-  .action-row{
-    display:flex;
-    gap:10px;
-    padding:12px 14px;
-    border-top:1px solid var(--line);
-    align-items:center;
-    flex-wrap:wrap;
-  }
-  .hint{
-    font-size:11.5px;
-    color:var(--ink-soft);
-    font-family:var(--mono);
-  }
-  .stamp-mark{
-    font-family:var(--mono);
-    font-size:11px;
-    color:var(--warn);
-  }
-
-  #output{
-    white-space:pre-wrap;
-  }
-
-  .fields-note{
-    padding:12px 14px 0;
-    font-family:var(--mono);
-    font-size:11px;
-    color:var(--ink-soft);
-    line-height:1.6;
-  }
-  .fields-note b{color:var(--ink);}
-
-  footer{
-    margin-top:26px;
-    font-family:var(--mono);
-    font-size:11px;
-    color:var(--ink-soft);
-    border-top:1px dashed var(--line);
-    padding-top:14px;
-  }
-
-  ::selection{background:var(--stamp-soft);}
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Requirement Cleaner</h1>
-    <div class="tag">paste messy → get the standard slip</div>
-  </header>
 
-  <div class="grid">
+<!-- ===================== NAV ===================== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="brand">
+      <span class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      </span>
+      <span class="brand-name">REQ <span>CLEANER</span></span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#tool">How it works</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="icon-btn theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+        <svg class="sun-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="moon-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a class="icon-btn" href="#" title="View source" aria-label="View source">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.79 23.4c.6.11.82-.26.82-.58v-2.02c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.21.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.02 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.49 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 12 .3"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="hero-deco-left">
+    <div class="blob" style="width:180px;height:180px;left:-40px;top:120px;"></div>
+    <svg class="paper-stack" width="180" height="180" viewBox="0 0 180 180">
+      <rect x="20" y="10" width="120" height="150" rx="10"/>
+      <line x1="40" y1="40" x2="100" y2="40" stroke="var(--ink-faint)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="40" y1="58" x2="120" y2="58" stroke="var(--border)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="40" y1="74" x2="120" y2="74" stroke="var(--border)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="40" y1="90" x2="90" y2="90" stroke="var(--border)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M118 8l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" fill="var(--orange)"/>
+    </svg>
+  </div>
+  <div class="hero-deco-right">
+    <div class="blob" style="width:200px;height:200px;right:-50px;top:80px;"></div>
+    <svg class="dot-grid" width="140" height="140">
+      <g>
+        <circle cx="4" cy="4" r="2"/><circle cx="26" cy="4" r="2"/><circle cx="48" cy="4" r="2"/><circle cx="70" cy="4" r="2"/><circle cx="92" cy="4" r="2"/><circle cx="114" cy="4" r="2"/>
+        <circle cx="4" cy="26" r="2"/><circle cx="26" cy="26" r="2"/><circle cx="48" cy="26" r="2"/><circle cx="70" cy="26" r="2"/><circle cx="92" cy="26" r="2"/><circle cx="114" cy="26" r="2"/>
+        <circle cx="4" cy="48" r="2"/><circle cx="26" cy="48" r="2"/><circle cx="48" cy="48" r="2"/><circle cx="70" cy="48" r="2"/><circle cx="92" cy="48" r="2"/><circle cx="114" cy="48" r="2"/>
+        <circle cx="4" cy="70" r="2"/><circle cx="26" cy="70" r="2"/><circle cx="48" cy="70" r="2"/><circle cx="70" cy="70" r="2"/><circle cx="92" cy="70" r="2"/><circle cx="114" cy="70" r="2"/>
+        <circle cx="4" cy="92" r="2"/><circle cx="26" cy="92" r="2"/><circle cx="48" cy="92" r="2"/><circle cx="70" cy="92" r="2"/><circle cx="92" cy="92" r="2"/><circle cx="114" cy="92" r="2"/>
+        <circle cx="4" cy="114" r="2"/><circle cx="26" cy="114" r="2"/><circle cx="48" cy="114" r="2"/><circle cx="70" cy="114" r="2"/><circle cx="92" cy="114" r="2"/><circle cx="114" cy="114" r="2"/>
+      </g>
+    </svg>
+    <svg class="bracket-deco" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 3"><path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"/></svg>
+  </div>
+
+  <h1>Requirement <span class="accent">Cleaner</span></h1>
+  <p class="lead">Paste messy placement requirements and get clean, structured hiring slips in seconds.</p>
+
+  <div class="steps">
+    <div class="step active" id="step1">
+      <div class="step-circle">1</div>
+      <div class="step-label">Paste</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step2">
+      <div class="step-circle">2</div>
+      <div class="step-label">Process</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step3">
+      <div class="step-circle">3</div>
+      <div class="step-label">Copy</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TOOL ===================== -->
+<section class="tool-section" id="tool">
+  <div class="tool-grid">
+
     <div class="panel">
       <div class="panel-head">
-        <span class="label">Raw / Messy Input</span>
-        <button class="btn ghost small" onclick="loadSample()">Load sample</button>
+        <div class="panel-title">
+          <span class="panel-icon orange">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+          </span>
+          <h3>Raw / Messy Input</h3>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="loadSampleBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Load Sample
+          </button>
+          <button class="btn danger" id="clearInputBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Clear
+          </button>
+        </div>
       </div>
-      <textarea id="input" placeholder="Paste the unclean requirement text here..."></textarea>
-      <div class="action-row">
-        <button class="btn" onclick="clean()">Clean it →</button>
-        <button class="btn ghost small" onclick="document.getElementById('input').value='';document.getElementById('output').textContent='';">Clear</button>
-        <label class="hint" style="display:flex;align-items:center;gap:5px;cursor:pointer;">
-          <input type="checkbox" id="includeExtra" onchange="clean()"> include extra fields (business unit, rounds, 10th/12th%, masters...)
+      <textarea class="field" id="input" placeholder="Paste the unclean requirement text here..."></textarea>
+      <div class="panel-foot">
+        <label class="checkbox-row">
+          <input type="checkbox" id="includeExtra">
+          <span><strong>Include extra fields</strong> (business unit, rounds, 10th/12th%, masters...)</span>
         </label>
       </div>
     </div>
 
+    <div class="tool-arrow">
+      <button id="arrowBtn" title="Clean it" aria-label="Clean it">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+
     <div class="panel">
       <div class="panel-head">
-        <span class="label">Cleaned Output</span>
-        <button class="btn ghost small" onclick="copyOutput()">Copy</button>
+        <div class="panel-title">
+          <span class="panel-icon green">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.5 4.6.4-3.5 3 1 4.6-4-2.5-4 2.5 1-4.6-3.5-3 4.6-.4z"/></svg>
+          </span>
+          <h3>Cleaned Output</h3>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="copyBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
       </div>
-      <textarea id="output" placeholder="Cleaned requirement will appear here, editable before you copy it."></textarea>
-      <div class="action-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
-        <span class="stamp-mark" id="statusMark"></span>
-        <span class="hint" id="detectHint"></span>
+      <textarea class="field" id="output" placeholder="Cleaned requirement will appear here, editable before you copy it."></textarea>
+      <div class="panel-foot" style="flex-direction:column; align-items:flex-start; gap:4px;">
+        <span class="status-line" id="statusMark"></span>
+        <span class="hint-line" id="detectHint"></span>
       </div>
     </div>
-  </div>
 
-  <div class="panel" id="leftoverPanel" style="min-height:auto;margin-top:20px;display:none;">
-    <div class="panel-head">
-      <span class="label">Not included in cleaned output</span>
-    </div>
-    <div id="leftoverList" style="padding:14px;font-family:var(--mono);font-size:12.5px;line-height:1.7;"></div>
   </div>
+</section>
 
-  <div class="fields-note">
-    Recognises: <b>Company / Branch code, Business unit, Job title, Designation, Job & interview location,
-    Skills required, Other skills, Gender, Mode/rounds of interview, 10th/12th %, YOP, Qualification type,
-    Degree + stream + %, Masters + stream + %, Salary, Bond.</b>
-    Fields not found in your paste are simply left out — edit the right-hand box freely before copying.
-    Degree/stream names are auto-shortened (e.g. Bachelor of Engineering → BE) when recognised; anything
-    unrecognised is kept in full.
+<!-- ===================== ACTIONS ===================== -->
+<div class="actions">
+  <div class="actions-row">
+    <button class="btn-primary" id="cleanBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.5 4.6.4-3.5 3 1 4.6-4-2.5-4 2.5 1-4.6-3.5-3 4.6-.4z"/></svg>
+      Clean Requirement
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+    <button class="btn-secondary" id="clearAllBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      Clear All
+    </button>
   </div>
-
-  <footer>Everything runs in your browser — nothing you paste here is sent anywhere.</footer>
+  <div class="privacy-note">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Everything runs in your browser. Nothing you paste is sent anywhere.
+  </div>
 </div>
 
-<script>
-const LABELS = [
-  ['companyRaw', /\bcompany\s*name\s*\/\s*account\s*name\b/i],
-  ['companyRaw', /\bcompany\s*name\b/i],
-  ['companyRaw', /\baccount\s*name\b/i],
-  ['code', /\bbranch\s*deal\b/i],
-  ['businessUnit', /\bbusiness\s*unit\b/i],
-  ['jobTitle', /\bjob\s*title\b(\s*\([^)]*\))?\s*/i],
-  ['designation', /\bdesignation\b(\s*\([^)]*\))?\s*/i],
-  ['interviewLocation', /\binterview\s*location\b/i],
-  ['jobLocation', /\bjob\s*location\b/i],
-  ['skills', /\bskills\s*required\b/i],
-  ['otherSkills', /\bother\s*skills\b/i],
-  ['genderSpec', /\bgender\s*specification\b/i],
-  ['genderSpec', /\bgender\b/i],
-  ['mode', /\bmode\s*of\s*interview\b/i],
-  ['rounds', /\binterview\s*rounds\b/i],
-  ['tenth', /\b10\s*th\s*percent\b/i],
-  ['twelfth', /\b12\s*th\s*percent\b/i],
-  ['qualType', /\bqualification\s*type\b/i],
-  ['degreeStream', /\bdegree\s*stream\b/i],
-  ['degreePercent', /\bdegree\s*percent\b/i],
-  ['degree', /\bdegree\b/i],
-  ['mastersStream', /\bmasters\s*stream\b/i],
-  ['mastersPercent', /\bmasters\s*percent\b/i],
-  ['masters', /\bmasters\b/i],
-  ['salary', /\bsalary\s*package\b/i],
-  ['salary', /\bsalary\b/i],
-  ['bond', /\bbond\b/i],
-  ['yop', /\byop\b/i],
-  ['stream', /\bstream\b/i],
-  ['overallPercent', /(?<![a-z])%(?=\s*:)/i],
-  ['date', /\bdate\b/i],
-];
+<!-- ===================== LEFTOVER ===================== -->
+<div class="leftover-section" id="leftoverSection">
+  <div class="leftover-card">
+    <div class="leftover-head">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Not included in cleaned output
+    </div>
+    <div class="leftover-body" id="leftoverList"></div>
+  </div>
+</div>
 
-function parse(text) {
-  const { text: strippedText } = separateLeftover(text);
-  let t = strippedText.replace(/\r/g, '').replace(/\*/g, '');
-  // Use a sentinel (\u0001) to mark REAL field boundaries: tabs, newlines, or big gaps
-  // (2+ spaces) used to separate concatenated fields on one line. A label word that
-  // merely appears mid-sentence (single space before it) will NOT be preceded by a
-  // sentinel, so it can no longer be mistaken for the start of a new field.
-  let flat = t
-    .replace(/\t+/g, '\u0001')
-    .replace(/\n+/g, '\u0001')
-    .replace(/ {2,}/g, '\u0001')
-    .replace(/[\u0001\s]*\u0001[\u0001\s]*/g, '\u0001')
-    .replace(/^\u0001+|\u0001+$/g, '');
+<!-- ===================== FEATURES ===================== -->
+<section class="features" id="features">
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon orange">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <h4>Smart Recognition</h4>
+      <p>Recognises company, role, salary, skills and more automatically.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon blue">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      </div>
+      <h4>Standard Format</h4>
+      <p>Converts messy text into a clean, structured hiring slip.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon purple">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h4>100% Private</h4>
+      <p>All processing happens locally in your browser.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon green">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+      </div>
+      <h4>Super Fast</h4>
+      <p>Built for speed and accuracy with smart parsing.</p>
+    </div>
+  </div>
+</section>
 
-  let matches = [];
-  for (const [key, re] of LABELS) {
-    const gre = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
-    let m;
-    while ((m = gre.exec(flat)) !== null) {
-      const precededByBoundary = m.index === 0 || flat[m.index - 1] === '\u0001';
-      if (!precededByBoundary) {
-        if (m.index === gre.lastIndex) gre.lastIndex++;
-        continue;
-      }
-      let end = m.index + m[0].length;
-      let rest = flat.slice(end);
-      let colonMatch = rest.match(/^[\u0001\s]*:?-?[\u0001\s]*/);
-      let valueStart = end + (colonMatch ? colonMatch[0].length : 0);
-      matches.push({ key, start: m.index, labelEnd: end, valueStart });
-      if (m.index === gre.lastIndex) gre.lastIndex++;
-    }
-  }
-  matches.sort((a, b) => a.start - b.start);
+<!-- ===================== ABOUT ===================== -->
+<section class="about" id="about">
+  <div class="about-inner">
+    <h2>Built for busy placement desks</h2>
+    <p>Requirement Cleaner reads the shorthand recruiters actually type &mdash; tabs, slashes, half-finished
+      sentences &mdash; and turns it into one consistent slip you can paste straight into a WhatsApp group,
+      every time.</p>
+  </div>
+</section>
 
-  let filtered = [];
-  for (const m of matches) {
-    let dupe = filtered.find(f => f.start === m.start);
-    if (dupe) {
-      if ((m.labelEnd - m.start) > (dupe.labelEnd - dupe.start)) {
-        filtered = filtered.filter(f => f !== dupe);
-        filtered.push(m);
-      }
-      continue;
-    }
-    filtered.push(m);
-  }
-  filtered.sort((a, b) => a.start - b.start);
+<footer class="site-footer">Requirement Cleaner &mdash; runs entirely in your browser.</footer>
 
-  let cleaned = [];
-  for (const m of filtered) {
-    const prev = cleaned[cleaned.length - 1];
-    if (prev && m.start < prev.valueStart) continue;
-    cleaned.push(m);
-  }
-
-  const result = {};
-  const rejected = []; // text trimmed off by validators - shown as "not included"
-  for (let i = 0; i < cleaned.length; i++) {
-    const cur = cleaned[i];
-    const next = cleaned[i + 1];
-    let valueEnd = next ? next.start : flat.length;
-    let value = flat.slice(cur.valueStart, valueEnd).replace(/\u0001/g, ' ').trim();
-    value = value.replace(/^[-:\s]+/, '').replace(/[-\s]+$/, '').replace(/\s{2,}/g, ' ');
-    if (!value) continue;
-
-    const validated = validateField(cur.key, value);
-    if (validated.rejected) rejected.push(validated.rejected);
-    if (!validated.value) continue;
-
-    if (!result[cur.key]) result[cur.key] = validated.value;
-    else result[cur.key] += ' ; ' + validated.value;
-  }
-  result.__rejected = rejected;
-  return result;
-}
-
-const DATE_PATTERN = /\d{1,2}\s*[-\/.]\s*(?:\d{1,2}|[A-Za-z]{3,9})\s*[-\/.]\s*\d{2,4}/;
-const GENDER_TOKEN = /\b(male|female|any)\b/gi;
-
-function validateField(key, value) {
-  if (key === 'date') {
-    const m = value.match(DATE_PATTERN);
-    if (m) {
-      const rest = (value.slice(0, m.index) + value.slice(m.index + m[0].length)).trim().replace(/^[;,\s]+|[;,\s]+$/g, '');
-      return { value: m[0].trim(), rejected: rest ? `(trimmed from Date) ${rest}` : null };
-    }
-    return { value, rejected: null }; // no clean date pattern found - keep as-is, better than nothing
-  }
-  if (key === 'genderSpec') {
-    const tokens = value.match(GENDER_TOKEN);
-    if (tokens) {
-      const unique = [...new Set(tokens.map(t => t.toUpperCase()))];
-      const matchedSpan = tokens.join('|');
-      // figure out what's left after removing the matched gender words
-      const rest = value.replace(GENDER_TOKEN, '').replace(/[\/,]/g, ' ').replace(/\s+/g, ' ').trim();
-      return { value: unique.join(' / '), rejected: rest ? `(trimmed from Gender) ${rest}` : null };
-    }
-    return { value, rejected: null };
-  }
-  return { value, rejected: null };
-}
-
-// ---- Degree / Stream short-form dictionary ----
-// Longest phrases first so "computer science and engineering" beats "computer science"
-const DEGREE_ABBR = [
-  ['bachelor of engineering', 'BE'],
-  ['bachelor of technology', 'BTECH'],
-  ['bachelor of computer applications', 'BCA'],
-  ['bachelor of computer application', 'BCA'],
-  ['bachelor of computer science', 'BCS'],
-  ['bachelor of business administration', 'BBA'],
-  ['bachelor of commerce', 'BCOM'],
-  ['bachelor of science', 'BSC'],
-  ['bachelor of arts', 'BA'],
-  ['master of engineering', 'ME'],
-  ['master of technology', 'MTECH'],
-  ['master of computer applications', 'MCA'],
-  ['master of business administration', 'MBA'],
-  ['master of commerce', 'MCOM'],
-  ['master of science', 'MSC'],
-  ['master of arts', 'MA'],
-];
-
-const STREAM_ABBR = [
-  ['artificial intelligence and machine learning engineering', 'AIML'],
-  ['artificial intelligence and machine learning', 'AIML'],
-  ['computer science and engineering', 'CSE'],
-  ['information science and engineering', 'ISE'],
-  ['electronics and communication engineering', 'ECE'],
-  ['electronics and telecommunications engineering', 'ETE'],
-  ['electronics and telecommunication engineering', 'ETE'],
-  ['electrical and electronics engineering', 'EEE'],
-  ['electrical and electronic engineering', 'EEE'],
-  ['mechanical engineering', 'MECH'],
-  ['civil engineering', 'CIVIL'],
-  ['chemical engineering', 'CHEM'],
-  ['aeronautical engineering', 'AERO'],
-  ['electrical engineering', 'EE'],
-  ['information science', 'ISE'],
-  ['information technology', 'IT'],
-  ['computer science', 'CSE'],
-  ['biotechnology', 'BT'],
-  ['artificial intelligence', 'AI'],
-];
-
-function buildAbbrRegexList(dict) {
-  // sort longest phrase first so longer matches win over shorter substrings
-  return [...dict].sort((a, b) => b[0].length - a[0].length)
-    .map(([phrase, code]) => [new RegExp('\\b' + phrase.replace(/\s+/g, '\\s+') + '\\b', 'gi'), code]);
-}
-const DEGREE_ABBR_RE = buildAbbrRegexList(DEGREE_ABBR);
-const STREAM_ABBR_RE = buildAbbrRegexList(STREAM_ABBR);
-
-function abbreviate(text, reList) {
-  if (!text) return text;
-  let out = text;
-  for (const [re, code] of reList) out = out.replace(re, code);
-  return out;
-}
-
-// ---- Leftover / not-recognised detection ----
-const BOILERPLATE_LINE = [
-  /^\*?\s*requirement\s*\*?$/i,
-  /^those who are interested/i,
-  /^name\s*:?\s*$/i,
-  /^contact\s*no\s*:?\s*$/i,
-  /^degree\s*:?\s*$/i,
-  /^stream\s*:?\s*$/i,
-  /^yop\s*:?\s*$/i,
-  /^[-=*_\s]{2,}$/,
-];
-
-function lineHasBoundedLabel(line) {
-  let l = line.replace(/\*/g, '');
-  let flatLine = l
-    .replace(/\t+/g, '\u0001')
-    .replace(/ {2,}/g, '\u0001')
-    .replace(/[\u0001\s]*\u0001[\u0001\s]*/g, '\u0001')
-    .replace(/^[\u0001\s]+/, '')
-    .replace(/\u0001+$/, '');
-  for (const [, re] of LABELS) {
-    const gre = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
-    let m;
-    while ((m = gre.exec(flatLine)) !== null) {
-      const boundary = m.index === 0 || flatLine[m.index - 1] === '\u0001';
-      if (boundary) return true;
-      if (m.index === gre.lastIndex) gre.lastIndex++;
-    }
-  }
-  return false;
-}
-
-function separateLeftover(rawText) {
-  const lines = rawText.replace(/\r/g, '').split('\n');
-  const keptLines = [];
-  const leftovers = [];
-  for (let line of lines) {
-    let trimmed = line.replace(/\*/g, '').trim();
-    if (!trimmed) { keptLines.push(line); continue; }
-    if (BOILERPLATE_LINE.some(re => re.test(trimmed))) { keptLines.push(line); continue; }
-    if (lineHasBoundedLabel(trimmed)) { keptLines.push(line); continue; }
-    // no recognised label at a real boundary on this line -> treat as leftover, drop it from parsing text
-    leftovers.push(line.trim());
-  }
-  return { text: keptLines.join('\n'), leftovers };
-}
-
-function findLeftover(rawText) {
-  return separateLeftover(rawText).leftovers;
-}
-
-function splitCompanyCode(r) {
-  let m = r.companyRaw ? r.companyRaw.match(/^([A-Za-z0-9]+)\s*\(([^)]+)\)$/) : null;
-  if (m) return { code: r.code || m[1], company: m[2].trim() };
-  return { code: r.code || '', company: r.companyRaw || '' };
-}
-
-function deriveDate(code, explicitDate) {
-  if (explicitDate) return explicitDate.replace(/^-+|-+$/g, '').trim();
-  if (code) {
-    const m = code.match(/^R(\d{2})(\d{2})(\d{2})/i);
-    if (m) return `${m[1]}-${m[2]}-20${m[3]}`;
-  }
-  return '';
-}
-
-function titleCaseWords(s) {
-  if (!s) return s;
-  return s.replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function upper(s){ return s ? s.toUpperCase() : s; }
-
-const EXTRA_FIELD_LABELS = {
-  businessUnit: 'Business Unit',
-  interviewLocation: 'Interview Location',
-  mode: 'Mode of Interview',
-  rounds: 'Interview Rounds',
-  tenth: '10th %',
-  twelfth: '12th %',
-  qualType: 'Qualification Type',
-  degreePercent: 'Degree %',
-  masters: 'Masters',
-  mastersStream: 'Masters Stream',
-  mastersPercent: 'Masters %',
-};
-
-const MANDATORY_LABELS = {
-  date: 'Date', company: 'Company Name', jobTitle: 'Job Title', designation: 'Designation',
-  skills: 'Skills Required', otherSkills: 'Other Skills', jobLocation: 'Job location',
-  salary: 'Salary package', bond: 'BOND', genderSpec: 'Gender', degree: 'DEGREE',
-  degreeStream: 'Degree Stream', yop: 'YOP',
-};
-
-function format(r, includeExtra) {
-  const { code, company } = splitCompanyCode(r);
-  const date = deriveDate(code, r.date);
-  const missing = [];
-
-  const lines = [];
-  lines.push('REQUIREMENT');
-
-  if (date) lines.push(`Date :- ${date}`); else missing.push('Date');
-
-  if (code || company) {
-    let compLine = 'Company Name :';
-    compLine += code ? ` ${code}` : `${company ? ' ' + company : ''}`;
-    if (code && company) compLine += `   (${company})`;
-    lines.push(compLine);
-  } else missing.push('Company Name');
-
-  if (r.jobTitle) lines.push(`Job Title : ${titleCaseWords(r.jobTitle)}`); else missing.push('Job Title');
-  if (r.designation) lines.push(`Designation : ${r.designation}`); else missing.push('Designation');
-  if (r.skills) lines.push(`Skills Required : ${r.skills}`); else missing.push('Skills Required');
-
-  lines.push(`Other Skills : ${r.otherSkills ? r.otherSkills : 'NA'}`);
-
-  if (r.jobLocation) lines.push(`Job location : ${r.jobLocation}`); else missing.push('Job location');
-  if (r.salary) lines.push(`Salary package : ${r.salary}`); else missing.push('Salary package');
-  if (r.bond) lines.push(`BOND : ${r.bond}`); else missing.push('BOND');
-  if (r.genderSpec) lines.push(`Gender: ${r.genderSpec}`); else missing.push('Gender');
-
-  const degreeOut = r.degree ? abbreviate(r.degree, DEGREE_ABBR_RE) : '';
-  if (degreeOut) lines.push(`DEGREE: ${degreeOut}`); else missing.push('DEGREE');
-
-  const streamOut = r.degreeStream ? abbreviate(r.degreeStream, STREAM_ABBR_RE)
-    : (r.stream ? abbreviate(upper(r.stream), STREAM_ABBR_RE) : '');
-  if (streamOut) lines.push(`Degree Stream: ${streamOut}`); else missing.push('Degree Stream');
-
-  if (r.yop) lines.push(`YOP : ${r.yop}`); else missing.push('YOP');
-
-  if (r.overallPercent) lines.push(`%: ${r.overallPercent}`);
-
-  if (includeExtra) {
-    if (r.businessUnit) lines.push(`Business Unit : ${r.businessUnit}`);
-    if (r.interviewLocation) lines.push(`Interview location : ${r.interviewLocation}`);
-    if (r.mode) lines.push(`Mode of Interview : ${r.mode}`);
-    if (r.rounds) lines.push(`Interview Rounds : ${r.rounds}`);
-    if (r.tenth) lines.push(`10th % : ${r.tenth}`);
-    if (r.twelfth) lines.push(`12th % : ${r.twelfth}`);
-    if (r.qualType) lines.push(`Qualification Type : ${r.qualType}`);
-    if (r.degreePercent) lines.push(`Degree % : ${r.degreePercent}`);
-    if (r.masters) lines.push(`MASTERS : ${abbreviate(r.masters, DEGREE_ABBR_RE)}`);
-    if (r.mastersStream) lines.push(`Masters Stream : ${abbreviate(r.mastersStream, STREAM_ABBR_RE)}`);
-    if (r.mastersPercent) lines.push(`Masters % : ${r.mastersPercent}`);
-  }
-
-  lines.push('');
-  lines.push('Those who are interested give your name in below format its urgent requirement.');
-  lines.push('NAME:');
-  lines.push('CONTACT NO:');
-  lines.push('DEGREE:');
-  lines.push('STREAM:');
-  lines.push('YOP:');
-
-  return { text: lines.join('\n'), missing };
-}
-
-function extraFieldsPresent(r) {
-  return Object.keys(EXTRA_FIELD_LABELS).filter(k => r[k]).map(k => EXTRA_FIELD_LABELS[k]);
-}
-
-function clean() {
-  const raw = document.getElementById('input').value;
-  const status = document.getElementById('statusMark');
-  const hint = document.getElementById('detectHint');
-  const includeExtra = document.getElementById('includeExtra').checked;
-  if (!raw.trim()) {
-    status.textContent = 'Nothing to clean yet.';
-    return;
-  }
-  const parsed = parse(raw);
-  const rejectedByValidator = parsed.__rejected || [];
-  const found = Object.keys(parsed).filter(k => k !== '__rejected').length;
-  const { text: outText, missing } = format(parsed, includeExtra);
-  document.getElementById('output').value = outText;
-  status.textContent = `Detected ${found} field${found === 1 ? '' : 's'}. Review before sending.`;
-
-  const hiddenExtras = includeExtra ? [] : extraFieldsPresent(parsed);
-  let hintParts = [];
-  if (missing.length) hintParts.push(`⚠ Missing: ${missing.join(', ')}`);
-  if (hiddenExtras.length) hintParts.push(`Also found (hidden): ${hiddenExtras.join(', ')}`);
-  hint.textContent = hintParts.join('  |  ');
-  hint.style.color = missing.length ? '#b0542b' : '';
-
-  const leftovers = [...findLeftover(raw), ...rejectedByValidator];
-  const panel = document.getElementById('leftoverPanel');
-  const list = document.getElementById('leftoverList');
-  if (leftovers.length) {
-    panel.style.display = 'block';
-    list.innerHTML = leftovers.map(l =>
-      `<div style="border-left:3px solid #b0542b;padding:4px 10px;margin-bottom:6px;background:#fbeee7;">${l.replace(/</g,'&lt;')}</div>`
-    ).join('');
-  } else {
-    panel.style.display = 'block';
-    list.innerHTML = '<div style="color:#5c6a63;">Nothing left over — every line was recognised.</div>';
-  }
-}
-
-function copyOutput() {
-  const out = document.getElementById('output');
-  out.select();
-  document.execCommand('copy');
-  const status = document.getElementById('statusMark');
-  status.textContent = 'Copied to clipboard.';
-  setTimeout(() => { if (status.textContent === 'Copied to clipboard.') status.textContent=''; }, 2000);
-}
-
-function loadSample() {
-  document.getElementById('input').value = `Company Name / Account Name\tembitel
-Branch Deal\tR14072633703J
-Business Unit\tjspiders
-Job Title (Testing/Development/Generic) :\ttechnical
-Designation (Role/Job Title) :\tsoftware engineer
-Job Location : bangalore
-Interview Location : bangalore
-Skills Required :\tcore java
-Other Skills :\tspring boot , good communication
-Gender Specification :\tfemale , male
-Mode Of Interview : offline
-Interview Rounds : technical round , hr round , aptitude test
-10th Percent\t65%
-12th Percent\t65%
-YOP : 2026
-Qualification Type :\tDegree  Masters
-Degree :\tbachelor of engineering ; bachelor of technology
-Degree Stream :\tcomputer science , information technology
-Degree Percent : 65% - 100%
-Masters : master of engineering ; master of technology
-Masters Stream\tcomputer science , information technology
-Masters Percent : \t65% - 100%`;
-}
-</script>
+<script src="script.js"></script>
 </body>
 </html>
